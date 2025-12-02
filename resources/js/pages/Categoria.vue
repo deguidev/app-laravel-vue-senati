@@ -4,7 +4,7 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Pencil, Plus, Save, SquareX, Trash2 } from 'lucide-vue-next';
+import { FileText, Pencil, Plus, Save, SquareX, Trash2 } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import { onMounted, ref } from 'vue';
 
@@ -12,6 +12,7 @@ const categorias = ref([]);
 const miNombre = ref('');
 const mostrarModal = ref(false);
 const mostrarModalEditar = ref(false);
+const idCategoria = ref('');
 
 //Formulario
 const formulario = ref({
@@ -48,6 +49,7 @@ const cerrarModal = () => {
 //funciones para manipular el modal editar
 const abrirModalEditar = ( dataCategoria : any ) => {
     mostrarModalEditar.value = true;
+    idCategoria.value = dataCategoria.id;
 
     console.log(dataCategoria.nombre_categoria);
     console.log(dataCategoria.descripcion);
@@ -90,23 +92,24 @@ const actualizarFormulario = async () => {
     console.log('Diego Lipa');
     console.log(formulario.value);
 
-    const respuesta = await axios.put('/categorias-data', formulario.value);
+    const respuesta = await axios.put(`/categorias-data/${idCategoria.value}`, formulario.value);
     if (respuesta.data.success) {
         Swal.fire({
-            title: 'Recurso Creado',
-            text: 'Categoria Creada',
+            title: 'Recurso Actualizado',
+            text: 'Categoria Actualizada',
             icon: 'success',
         });
-        mostrarModal.value = false;
+        mostrarModalEditar.value = false;
         listarCategoria();
-    } else {
-        Swal.fire({
-            title: 'Error al crear',
-            text: 'Categoria no creada',
-            icon: 'error',
-        });
     }
 };
+
+
+const exportarPdf = () =>{
+    const url = '/categorias-data-pdf';
+    window.location.href = url;
+}
+
 
 const eliminarCategoria = async (id: number) => {
     const respuesta = await axios.delete(`/categorias-data/${id}`);
@@ -238,7 +241,7 @@ onMounted(listarCategoria);
                             Editar Categoria
                         </h2>
 
-                        <form class="mt-4" @submit.prevent="enviarFormulario">
+                        <form class="mt-4" @submit.prevent="actualizarFormulario">
                             <div class="mb-3">
                                 <label for="nombre_categoria">
                                     <span
@@ -292,7 +295,7 @@ onMounted(listarCategoria);
         </div>
 
         <div class="mx-2 md:mx-10 lg:mx-20">
-            <div class="mb-3">
+            <div class="mb-3 flex flex-row gap-4">
                 <a
                     class="group relative inline-flex items-center overflow-hidden rounded-sm border border-current px-8 py-3 text-indigo-600 dark:text-white"
                     href="#"
@@ -309,6 +312,24 @@ onMounted(listarCategoria);
                         Agregar
                     </span>
                 </a>
+
+                <a
+                    class="group relative inline-flex items-center overflow-hidden rounded-sm border border-current px-8 py-3 text-rose-500 dark:text-white"
+                    href="#"
+                    @click="exportarPdf"
+                >
+                    <span
+                        class="absolute -start-full transition-all group-hover:start-4"
+                    >
+                        <FileText />
+                    </span>
+                    <span
+                        class="text-sm font-medium transition-all group-hover:ms-4"
+                    >
+                        Exportar PDF
+                    </span>
+                </a>
+
             </div>
 
             <div
@@ -348,7 +369,8 @@ onMounted(listarCategoria);
                                 {{ item.nombre_categoria }}
                             </th>
                             <td class="px-6 py-4">{{ item.descripcion }}</td>
-                            <td class="px-6 py-4">{{ item.estado }}</td>
+                            <td class="px-6 py-4">{{ item.estado==1?'Activo':'Desactivo'  }}</td>
+                            
                             <td class="px-6 py-4">
                                 <div class="flex flex-row gap-4">
                                     <a
