@@ -3,51 +3,77 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categoria;
+use Exception;
 use Illuminate\Http\Request;
 
 class CategoriaController extends Controller
 {
     //CRUD
     //LISTAR
-    public function listarCategoria(){
+    public function listarCategoria()
+    {
         //$categorias = Categoria::all();
-        $categorias = Categoria::orderBy('created_at','desc')->get();
+        $categorias = Categoria::orderBy('created_at', 'desc')->get();
 
         return response()->json([
-                'success'=> true,
-                'nombre' => 'Diego Lipa',
-                'data' => $categorias
-            ]);
+            'success' => true,
+            'nombre' => 'Diego Lipa',
+            'data' => $categorias
+        ]);
     }
 
-    public function guardarCategoria(Request $request){
+    public function guardarCategoria(Request $request)
+    {
         $validate = $request->validate([
             'descripcion' => 'required|string',
-            'nombre_categoria'=>'required'
+            'nombre_categoria' => 'required'
         ]);
 
-        $categoria = Categoria::create($request->all());
+        try {
+            $categoria = Categoria::create($request->all());
 
-        return response()->json([
-                'success'=> true,
+            return response()->json([
+                'success' => true,
                 'nombre' => 'Diego Lipa',
                 'data' => $categoria
             ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'nombre' => 'Diego Lipa',
+                'data' => $e->getMessage(),
+            ]);
+        }
     }
 
-    public function editarCategoria(){
+    public function editarCategoria(Request $request, $id_categoria) {
+        $validate = $request->validate([
+            'descripcion' => 'required|string',
+            'nombre_categoria' => 'required'
+        ]);
 
-    }
+        $categoria = Categoria::find($id_categoria);
 
-    public function eliminarCategoria($id_categoria){
-        $categoria = Categoria::findOrFail($id_categoria);
-        $categoria->delete();
-
+        $categoria->update([
+            'descripcion' => $request->descripcion,
+            'nombre_categoria' => $request->nombre_categoria,
+        ]);
         return response()->json([
-            'success'=> true,
+            'success' => true,
             'nombre' => 'Diego Lipa',
             'data' => $categoria
         ]);
     }
 
+    public function eliminarCategoria($id_categoria)
+    {
+        $categoria = Categoria::findOrFail($id_categoria);
+        $categoria->delete();
+
+        return response()->json([
+            'success' => true,
+            'nombre' => 'Diego Lipa',
+            'data' => $categoria
+        ]);
+    }
 }
